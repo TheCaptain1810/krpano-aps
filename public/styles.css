@@ -33,83 +33,47 @@ body {
   height: 100%;
   border: none;
 }
-/* Taskbar styles for camera controls */
-#controls {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  max-width: 100%;
-  background: rgba(30, 30, 30, 0.85);
-  backdrop-filter: blur(2px);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-  padding: 4px 0 4px 0;
-  z-index: 30;
-  gap: 8px;
-  box-sizing: border-box;
-  border-radius: 0;
-  overflow-x: auto;
-  overflow-y: hidden;
-  border-top: 1.5px solid #444;
-  min-height: 36px;
-  pointer-events: none;
-}
-#controls > * {
-  pointer-events: auto;
-}
-#controls label, #controls input, #controls button {
-  margin: 0 2px;
-  color: #fff;
-  white-space: nowrap;
-  font-size: 0.95em;
-}
-#controls h3 {
-  margin: 2px 8px 0 0;
-  font-size: 1em;
-  color: #fff;
-  font-weight: 600;
-}
-#controls input {
-  color: black;
-  width: 60px;
-  min-width: 40px;
-  max-width: 80px;
-  padding: 2px 4px;
-  height: 26px;
-  font-size: 0.95em;
-}
-#controls button {
-  cursor: pointer;
-  padding: 4px 8px;
-  background-color: #444;
-  border: none;
-  border-radius: 2px;
-  color: #fff;
-  font-weight: 500;
-  height: 28px;
-  font-size: 0.95em;
-}
-/* Nav cube smaller and in top right */
+
+/* krpano side */
 #navCubeContainer {
   position: absolute;
-  top: 3rem;
-  right: 1rem;
-  width: 90px;
-  height: 90px;
-  z-index: 11;
-  background: rgba(255,255,255,0.05);
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  top: 10px;
+  right: 10px;
+  width: 100px;
+  height: 100px;
+  z-index: 10;
+  background-color: rgba(0, 0, 0, 0.2);
 }
-#navCubeCanvas {
-  width: 80px !important;
-  height: 80px !important;
-  display: block;
-  cursor: grab;
+
+#controls {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(44, 44, 44, 0.8);
+  color: whitesmoke;
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 10;
+}
+
+#controls h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+#controls label {
+  display: inline-block;
+  width: 80px;
+  margin-right: 5px;
+}
+
+#controls input {
+  margin-bottom: 5px;
+  width: 60px;
+}
+
+#controls button {
+  margin-top: 5px;
+  margin-right: 5px;
+  padding: 5px 10px;
 }
