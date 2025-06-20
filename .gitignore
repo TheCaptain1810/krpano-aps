@@ -1,0 +1,13 @@
+// unnecessary folders
+panos
+plugins
+skin
+node_modules
+
+// unnecessary files
+*.exe
+tour_testingserver_macos
+.env
+*.log
+.DS_Store
+Thumbs.db

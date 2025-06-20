@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>krpano Camera Control with JavaScript & Basic 3D Navigator</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0"
+    />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+    <link rel="stylesheet" href="public/styles.css" />
+  </head>
+  <body>
+    <div class="split-container">
+      <div class="half">
+        <div id="pano">
+          <!-- krpano viewer will be embedded here -->
+          <div id="navCubeContainer">
+            <canvas id="navCubeCanvas"></canvas>
+          </div>
+          <div id="controls">
+            <h3>Camera Control</h3>
+            <label for="hlookat">HLOOKAT:</label>
+            <input type="number" id="hlookat" value="0" step="5" />
+            <label for="vlookat">VLOOKAT:</label>
+            <input type="number" id="vlookat" value="0" step="5" />
+            <label for="fov">FOV:</label>
+            <input type="number" id="fov" value="90" step="1" />
+            <button id="applyCamera">Apply</button>
+            <button id="zoomIn">Zoom In</button>
+            <button id="zoomOut">Zoom Out</button>
+          </div>
+        </div>
+      </div>
+      <div class="half">
+        <iframe
+          id="aps-viewer"
+          src="http://localhost:8080/"
+          title="Autodesk Platform Services Viewer"
+        ></iframe>
+      </div>
+    </div>
+
+    <!-- krpano embedding script -->
+    <script src="tour.js"></script>
+    <!-- Three.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="public/index.js"></script>
+  </body>
+</html>
