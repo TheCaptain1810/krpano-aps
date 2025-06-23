@@ -33,11 +33,21 @@
         </div>
       </div>
       <div class="half">
-        <iframe
-          id="aps-viewer"
-          src="http://localhost:8080/"
-          title="Autodesk Platform Services Viewer"
-        ></iframe>
+        <div id="aps-viewer-panel">
+          <div id="header">
+            <img
+              class="logo"
+              src="https://cdn.autodesk.io/logo/black/stacked.png"
+              alt="Autodesk Platform Services"
+            />
+            <span class="title">Simple Viewer</span>
+            <select name="models" id="models"></select>
+            <button id="upload" title="Upload New Model">Upload</button>
+            <input style="display: none" type="file" id="input" />
+          </div>
+          <div id="preview"></div>
+          <div id="overlay"></div>
+        </div>
       </div>
     </div>
 
@@ -45,6 +55,9 @@
     <script src="tour.js"></script>
     <!-- Three.js library -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- Autodesk Viewer library -->
+    <script src="https://developer.api.autodesk.com/modelderivative/v2/viewers/7.*/viewer3D.js"></script>
+    <script type="module" src="wwwroot/main.js"></script>
     <script src="public/index.js"></script>
   </body>
 </html>
