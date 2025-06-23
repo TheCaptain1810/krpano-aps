@@ -295,35 +295,6 @@ function animate() {
   }
 }
 
-function updateAPSViewerCamera(hlookat, vlookat, fov) {
-  if (window.apsViewer && window.apsViewer.navigation) {
-    const viewer = window.apsViewer;
-    const nav = viewer.navigation;
-    const target = nav.getTarget() || new THREE.Vector3(0, 0, 0);
-    const radius = nav.getEyeVector().length();
-    // Convert krpano hlookat/vlookat (degrees) to spherical coordinates
-    // hlookat: horizontal angle (yaw), vlookat: vertical angle (pitch)
-    // APS: theta (azimuthal, from +X), phi (polar, from +Y)
-    // We'll use:
-    //   theta = (hlookat - 90) * DEG2RAD
-    //   phi = (90 - vlookat) * DEG2RAD
-    const DEG2RAD = Math.PI / 180;
-    const theta = (hlookat - 90) * DEG2RAD;
-    const phi = (90 - vlookat) * DEG2RAD;
-    const x = target.x + radius * Math.sin(phi) * Math.cos(theta);
-    const y = target.y + radius * Math.cos(phi);
-    const z = target.z + radius * Math.sin(phi) * Math.sin(theta);
-    const position = new THREE.Vector3(x, y, z);
-    nav.setView(position, target);
-    if (typeof fov === "number" && viewer.setFOV) {
-      viewer.setFOV(fov);
-      if (viewer.impl && viewer.impl.invalidate) {
-        viewer.impl.invalidate(true, true, true); // Force redraw
-      }
-    }
-  }
-}
-
 function updateCubeFromKrpano() {
   if (
     !krpano ||
@@ -353,7 +324,14 @@ function updateCubeFromKrpano() {
   if (!inputFocusState.vlookat && vlookatEl)
     vlookatEl.value = krpanoV.toFixed(2);
   if (!inputFocusState.fov && fovEl) fovEl.value = fov.toFixed(2);
-  updateAPSViewerCamera(krpanoH, krpanoV, fov);
+  // Send camera data to APS viewer iframe
+  const apsIframe = document.getElementById("aps-viewer");
+  if (apsIframe && apsIframe.contentWindow) {
+    apsIframe.contentWindow.postMessage(
+      { hlookat: krpanoH, vlookat: krpanoV, fov },
+      "*"
+    );
+  }
   isUpdatingCubeFromKrpano = false;
 }
 

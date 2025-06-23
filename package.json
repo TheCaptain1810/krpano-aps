@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "krpano-aps integration",
   "scripts": {
-    "start": "node server.js"
+    "aps": "node server.js",
+    "vtour": "node main.js"
   },
   "keywords": [
     "autodesk-platform-services",
