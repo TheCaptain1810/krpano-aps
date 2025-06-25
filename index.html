@@ -13,23 +13,27 @@
   <body>
     <div class="split-container">
       <div class="half">
-        <div id="pano">
-          <!-- krpano viewer will be embedded here -->
-          <div id="navCubeContainer">
-            <canvas id="navCubeCanvas"></canvas>
+        <div id="pano"><!-- krpano viewer will be embedded here --></div>
+        <div id="controls">
+          <h3>Camera Control</h3>
+          <label for="hlookat">HLOOKAT:</label>
+          <input type="number" id="hlookat" value="0" step="5" />
+          <label for="vlookat">VLOOKAT:</label>
+          <input type="number" id="vlookat" value="0" step="5" />
+          <label for="fov">FOV:</label>
+          <input type="number" id="fov" value="90" step="1" />
+          <button id="applyCamera">Apply</button>
+          <button id="zoomIn">Zoom In</button>
+          <button id="zoomOut">Zoom Out</button>
+        </div>
+        <div id="arrow-controls" style="position:absolute;top:10px;right:10px;z-index:10;display:flex;flex-direction:column;align-items:center;background-color:rgba(0,0,0,0.2);border-radius:5px;padding:5px;">
+          <button id="arrow-up" aria-label="Up" style="width:40px; height:40px;">&#8593;</button>
+          <div style="display:flex; flex-direction:row;">
+            <button id="arrow-left" aria-label="Left" style="width:40px; height:40px;">&#8592;</button>
+            <div style="width:40px;"></div>
+            <button id="arrow-right" aria-label="Right" style="width:40px; height:40px;">&#8594;</button>
           </div>
-          <div id="controls">
-            <h3>Camera Control</h3>
-            <label for="hlookat">HLOOKAT:</label>
-            <input type="number" id="hlookat" value="0" step="5" />
-            <label for="vlookat">VLOOKAT:</label>
-            <input type="number" id="vlookat" value="0" step="5" />
-            <label for="fov">FOV:</label>
-            <input type="number" id="fov" value="90" step="1" />
-            <button id="applyCamera">Apply</button>
-            <button id="zoomIn">Zoom In</button>
-            <button id="zoomOut">Zoom Out</button>
-          </div>
+          <button id="arrow-down" aria-label="Down" style="width:40px; height:40px;">&#8595;</button>
         </div>
       </div>
       <div class="half">
@@ -42,9 +46,7 @@
     </div>
 
     <!-- krpano embedding script -->
-    <script src="tour.js"></script>
-    <!-- Three.js library -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="./tour.js"></script>
     <script src="public/index.js"></script>
   </body>
 </html>

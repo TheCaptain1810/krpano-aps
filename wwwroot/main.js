@@ -24,8 +24,26 @@ initViewer(document.getElementById('preview')).then(viewer => {
             viewer.navigation.setView(position, target);
 
             if (typeof fov === 'number') {
-                viewer.setFOV(fov);
-                viewer.impl.invalidate(true, true, true); // Force redraw
+                console.log('[APS Viewer] Received FOV from krpano:', fov);
+                if (viewer.impl && viewer.impl.camera && viewer.navigation) {
+                    const camera = viewer.impl.camera;
+                    const target = viewer.navigation.getTarget();
+                    // Calculate direction from target to camera
+                    const direction = new THREE.Vector3().subVectors(camera.position, target).normalize();
+                    // Map krpano FOV (10-140) to camera distance (e.g., 30-300 units)
+                    const minFov = 10, maxFov = 140;
+                    const minDist = 30, maxDist = 300;
+                    const t = (fov - minFov) / (maxFov - minFov);
+                    // Exponential mapping for stronger zoom at lower FOVs
+                    const newDistance = minDist + Math.pow(t, 1.5) * (maxDist - minDist);
+                    // Set new camera position
+                    const newPosition = new THREE.Vector3().addVectors(
+                        target,
+                        direction.multiplyScalar(newDistance)
+                    );
+                    viewer.navigation.setView(newPosition, target);
+                    console.log('[APS Viewer] Set camera distance for FOV:', fov, '->', newDistance, '(range:', minDist, '-', maxDist, ')');
+                }
             }
         }
     });

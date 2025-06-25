@@ -1,11 +1,4 @@
 let krpano = null;
-let scene, camera, renderer, cube;
-let isDragging = false;
-let previousMouseX = 0;
-let previousMouseY = 0;
-let isApplyingView = false;
-let isUpdatingCubeFromKrpano = false;
-let isUpdatingKrpanoFromCube = false;
 
 const inputFocusState = {
   hlookat: false,
@@ -29,23 +22,25 @@ function setupInputFocusTracking() {
   });
 }
 
+function syncInputsFromKrpano() {
+  if (!krpano) return;
+  const hlookatEl = document.getElementById("hlookat");
+  const vlookatEl = document.getElementById("vlookat");
+  const fovEl = document.getElementById("fov");
+  const h = krpano.get("view.hlookat");
+  const v = krpano.get("view.vlookat");
+  const f = krpano.get("view.fov");
+  if (hlookatEl && h !== undefined) hlookatEl.value = Math.max(-180, Math.min(180, h)).toFixed(2);
+  if (vlookatEl && v !== undefined) vlookatEl.value = Math.max(-90, Math.min(90, v)).toFixed(2);
+  if (fovEl && f !== undefined) fovEl.value = Math.max(10, Math.min(140, f)).toFixed(2);
+}
+
 function krpano_onready(krpano_interface) {
   krpano = krpano_interface;
   console.log("krpano is ready!");
   if (krpano) {
-    const hlookat = krpano.get("view.hlookat") || 0;
-    const vlookat = krpano.get("view.vlookat") || 0;
-    const fov = krpano.get("view.fov") || 90;
-    const hlookatEl = document.getElementById("hlookat");
-    const vlookatEl = document.getElementById("vlookat");
-    const fovEl = document.getElementById("fov");
-    if (hlookatEl)
-      hlookatEl.value = Math.max(-180, Math.min(180, hlookat)).toFixed(2);
-    if (vlookatEl)
-      vlookatEl.value = Math.max(-180, Math.min(180, vlookat)).toFixed(2);
-    if (fovEl) fovEl.value = Math.max(10, Math.min(140, fov)).toFixed(2);
-    krpano.set("events.onviewchange", "js(updateCubeFromKrpano());");
-    updateCubeFromKrpano();
+    syncInputsFromKrpano();
+    krpano.set("events.onviewchange", "js(syncInputsFromKrpano());");
   } else {
     console.error("krpano interface not properly initialized.");
   }
@@ -54,8 +49,8 @@ function krpano_onready(krpano_interface) {
 function embedKrpanoWithFallback() {
   try {
     embedpano({
-      swf: "../tour.swf",
-      xml: "../tour.xml",
+      swf: "tour.swf",
+      xml: "tour.xml",
       target: "pano",
       html5: "auto",
       onready: krpano_onready,
@@ -77,6 +72,12 @@ function applyCameraView(hlookat, vlookat, fov, tweenTime) {
   const fovEl = document.getElementById("fov");
   const tweenTimeEl = document.getElementById("tweenTime");
 
+  // Ensure FOV input is always valid
+  if (fovEl && (fovEl.value === '' || isNaN(parseFloat(fovEl.value)))) {
+    const currentFov = krpano.get("view.fov") || 90;
+    fovEl.value = Math.max(10, Math.min(140, currentFov)).toFixed(2);
+  }
+
   let targetH =
     hlookat !== undefined
       ? hlookat
@@ -94,7 +95,7 @@ function applyCameraView(hlookat, vlookat, fov, tweenTime) {
 
   // Clamp input values
   targetH = Math.max(-180, Math.min(180, targetH));
-  targetV = Math.max(-180, Math.min(180, targetV));
+  targetV = Math.max(-90, Math.min(90, targetV));
   targetFov = Math.max(10, Math.min(140, targetFov));
 
   if (
@@ -132,16 +133,17 @@ function applyCameraView(hlookat, vlookat, fov, tweenTime) {
 
   setTimeout(() => {
     if (krpano) {
+      const currentFov = krpano.get("view.fov");
+      if (fovEl && currentFov !== undefined) {
+        fovEl.value = Math.max(10, Math.min(140, currentFov)).toFixed(2);
+      }
       console.log("krpano view after call:", {
         hlookat: krpano.get("view.hlookat"),
         vlookat: krpano.get("view.vlookat"),
         fov: krpano.get("view.fov"),
       });
     }
-    isApplyingView = false;
   }, Math.max(1, targetTweenTime * 1000));
-
-  isApplyingView = true;
 }
 
 function zoomIn() {
@@ -174,204 +176,7 @@ function zoomOut() {
   if (fovEl) fovEl.value = newFov.toFixed(2);
 }
 
-function initThreeJSCube() {
-  const canvas = document.getElementById("navCubeCanvas");
-  const container = document.getElementById("navCubeContainer");
-  if (!canvas || !container) {
-    console.error("Navigation cube canvas or container not found.");
-    return;
-  }
-
-  scene = new THREE.Scene();
-  const size = Math.min(container.clientWidth, container.clientHeight);
-  camera = new THREE.OrthographicCamera(
-    -size / 2,
-    size / 2,
-    size / 2,
-    -size / 2,
-    0.1,
-    1000
-  );
-  camera.position.z = 200;
-
-  renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-  renderer.setSize(container.clientWidth, container.clientHeight);
-  renderer.setPixelRatio(window.devicePixelRatio);
-
-  const cubeSize = size * 0.35; // Increased from 0.25 to 0.35
-  const geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-  const materials = [
-    new THREE.MeshBasicMaterial({ color: 0xff0000 }),
-    new THREE.MeshBasicMaterial({ color: 0x00ff00 }),
-    new THREE.MeshBasicMaterial({ color: 0x0000ff }),
-    new THREE.MeshBasicMaterial({ color: 0xffff00 }),
-    new THREE.MeshBasicMaterial({ color: 0x00ffff }),
-    new THREE.MeshBasicMaterial({ color: 0xff00ff }),
-  ];
-  cube = new THREE.Mesh(geometry, materials);
-  cube.rotation.order = "YXZ";
-  scene.add(cube);
-
-  canvas.addEventListener("mousedown", onMouseDown, false);
-  document.addEventListener("mousemove", onMouseMove, false);
-  document.addEventListener("mouseup", onMouseUp, false);
-  canvas.addEventListener("mouseleave", onMouseLeaveCanvas, false);
-  canvas.addEventListener("wheel", (e) => e.stopPropagation(), false);
-  canvas.addEventListener("contextmenu", (e) => e.stopPropagation(), false);
-  window.addEventListener("resize", onWindowResize, false);
-
-  animate();
-}
-
-function onWindowResize() {
-  const container = document.getElementById("navCubeContainer");
-  if (!container || !renderer || !camera) return;
-  const width = container.clientWidth;
-  const height = container.clientHeight;
-  const size = Math.min(width, height);
-  if (camera.isOrthographicCamera) {
-    camera.left = -size / 2;
-    camera.right = size / 2;
-    camera.top = size / 2;
-    camera.bottom = -size / 2;
-    camera.updateProjectionMatrix();
-  }
-  renderer.setSize(width, height);
-  if (cube) {
-    const cubeSize = size * 0.35; // Increased from 0.25 to 0.35
-    cube.geometry = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
-  }
-}
-
-function onMouseDown(event) {
-  if (event.target === document.getElementById("navCubeCanvas")) {
-    isDragging = true;
-    previousMouseX = event.clientX;
-    previousMouseY = event.clientY;
-    document.getElementById("navCubeCanvas").style.cursor = "grabbing";
-    event.preventDefault();
-    event.stopPropagation();
-  }
-}
-
-function onMouseMove(event) {
-  if (!isDragging || !cube || !krpano) return;
-  const deltaX = event.clientX - previousMouseX;
-  const deltaY = event.clientY - previousMouseY;
-  const rotationSpeed = 0.015;
-  cube.rotation.y += deltaX * rotationSpeed;
-  cube.rotation.x += deltaY * rotationSpeed;
-  cube.rotation.x = Math.max(
-    -Math.PI / 2,
-    Math.min(Math.PI / 2, cube.rotation.x)
-  );
-  updateKrpanoFromCube();
-  previousMouseX = event.clientX;
-  previousMouseY = event.clientY;
-  event.preventDefault();
-  event.stopPropagation();
-}
-
-function onMouseUp(event) {
-  if (isDragging) {
-    isDragging = false;
-    const canvas = document.getElementById("navCubeCanvas");
-    if (canvas) canvas.style.cursor = "grab";
-  }
-}
-
-function onMouseLeaveCanvas(event) {
-  const canvas = document.getElementById("navCubeCanvas");
-  if (canvas) canvas.style.cursor = "grab";
-}
-
-function animate() {
-  requestAnimationFrame(animate);
-  if (!isDragging && !isApplyingView) {
-    updateCubeFromKrpano();
-  }
-  if (renderer && scene && camera) {
-    renderer.render(scene, camera);
-  }
-}
-
-function updateCubeFromKrpano() {
-  if (
-    !krpano ||
-    isUpdatingCubeFromKrpano ||
-    !cube ||
-    isDragging ||
-    isApplyingView
-  )
-    return;
-  isUpdatingCubeFromKrpano = true;
-  const krpanoH = Math.max(
-    -180,
-    Math.min(180, krpano.get("view.hlookat") || 0)
-  );
-  const krpanoV = krpano.get("view.vlookat") || 0;
-  const fov = Math.max(10, Math.min(140, krpano.get("view.fov") || 90));
-  const targetCubeY = THREE.MathUtils.degToRad(-krpanoH);
-  const targetCubeX = THREE.MathUtils.degToRad(krpanoV);
-  const tweenSpeed = 0.1;
-  cube.rotation.y += (targetCubeY - cube.rotation.y) * tweenSpeed;
-  cube.rotation.x += (targetCubeX - cube.rotation.x) * tweenSpeed;
-  const hlookatEl = document.getElementById("hlookat");
-  const vlookatEl = document.getElementById("vlookat");
-  const fovEl = document.getElementById("fov");
-  if (!inputFocusState.hlookat && hlookatEl)
-    hlookatEl.value = krpanoH.toFixed(2);
-  if (!inputFocusState.vlookat && vlookatEl)
-    vlookatEl.value = krpanoV.toFixed(2);
-  if (!inputFocusState.fov && fovEl) fovEl.value = fov.toFixed(2);
-  // Send camera data to APS viewer iframe
-  const apsIframe = document.getElementById("aps-viewer");
-  if (apsIframe && apsIframe.contentWindow) {
-    apsIframe.contentWindow.postMessage(
-      { hlookat: krpanoH, vlookat: krpanoV, fov },
-      "*"
-    );
-  }
-  isUpdatingCubeFromKrpano = false;
-}
-
-function updateKrpanoFromCube() {
-  if (!krpano || isUpdatingKrpanoFromCube || !cube) return;
-  isUpdatingKrpanoFromCube = true;
-  const krpanoH = Math.max(
-    -180,
-    Math.min(180, -THREE.MathUtils.radToDeg(cube.rotation.y))
-  );
-  const krpanoV = THREE.MathUtils.radToDeg(cube.rotation.x);
-  const currentFov = Math.max(10, Math.min(140, krpano.get("view.fov") || 90));
-  const krpanoCommand = `lookto(${krpanoH}, ${krpanoV}, ${currentFov}, 0.0, true, true, true);`;
-  try {
-    krpano.call(krpanoCommand);
-    const hlookatEl = document.getElementById("hlookat");
-    const vlookatEl = document.getElementById("vlookat");
-    if (hlookatEl) hlookatEl.value = krpanoH.toFixed(2);
-    if (vlookatEl) vlookatEl.value = krpanoV.toFixed(2);
-  } catch (e) {
-    console.error("Error updating krpano from cube:", e);
-  }
-  isUpdatingKrpanoFromCube = false;
-}
-
-function cleanup() {
-  window.removeEventListener("resize", onWindowResize);
-  const canvas = document.getElementById("navCubeCanvas");
-  if (canvas) {
-    canvas.removeEventListener("mousedown", onMouseDown);
-    canvas.removeEventListener("mouseleave", onMouseLeaveCanvas);
-    canvas.removeEventListener("wheel", (e) => e.stopPropagation());
-    canvas.removeEventListener("contextmenu", (e) => e.stopPropagation());
-  }
-  document.removeEventListener("mousemove", onMouseMove);
-  document.removeEventListener("mouseup", onMouseUp);
-}
-
 document.addEventListener("DOMContentLoaded", () => {
-  initThreeJSCube();
   setupInputFocusTracking();
   embedKrpanoWithFallback();
   // Add event listeners for zoom buttons
@@ -379,6 +184,49 @@ document.addEventListener("DOMContentLoaded", () => {
   if (zoomInBtn) zoomInBtn.addEventListener("click", zoomIn);
   const zoomOutBtn = document.getElementById("zoomOut");
   if (zoomOutBtn) zoomOutBtn.addEventListener("click", zoomOut);
-});
 
-window.addEventListener("unload", cleanup);
+  // Arrow button logic
+  const arrowUp = document.getElementById("arrow-up");
+  const arrowDown = document.getElementById("arrow-down");
+  const arrowLeft = document.getElementById("arrow-left");
+  const arrowRight = document.getElementById("arrow-right");
+  const hlookatEl = document.getElementById("hlookat");
+  const vlookatEl = document.getElementById("vlookat");
+  const stepH = 10; // degrees per press
+  const stepV = 10;
+
+  if (arrowUp) arrowUp.addEventListener("click", () => {
+    if (vlookatEl) {
+      let v = parseFloat(vlookatEl.value) || 0;
+      v = Math.min(90, v + stepV);
+      vlookatEl.value = v.toFixed(2);
+    }
+    applyCameraView();
+  });
+  if (arrowDown) arrowDown.addEventListener("click", () => {
+    if (vlookatEl) {
+      let v = parseFloat(vlookatEl.value) || 0;
+      v = Math.max(-90, v - stepV);
+      vlookatEl.value = v.toFixed(2);
+    }
+    applyCameraView();
+  });
+  if (arrowLeft) arrowLeft.addEventListener("click", () => {
+    if (hlookatEl) {
+      let h = parseFloat(hlookatEl.value) || 0;
+      h -= stepH;
+      if (h < -180) h += 360;
+      hlookatEl.value = h.toFixed(2);
+    }
+    applyCameraView();
+  });
+  if (arrowRight) arrowRight.addEventListener("click", () => {
+    if (hlookatEl) {
+      let h = parseFloat(hlookatEl.value) || 0;
+      h += stepH;
+      if (h > 180) h -= 360;
+      hlookatEl.value = h.toFixed(2);
+    }
+    applyCameraView();
+  });
+});

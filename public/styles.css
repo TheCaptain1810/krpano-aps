@@ -23,9 +23,7 @@ body {
 }
 #pano {
   width: 100%;
-  flex: 1 1 auto;
-  height: 0;
-  min-height: 0;
+  height: 100%;
   position: relative;
 }
 #aps-viewer {
